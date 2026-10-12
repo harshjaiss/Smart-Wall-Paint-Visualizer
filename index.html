@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Wall Paint Visualizer - MEAN Studio Edition</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 h-full flex flex-col antialiased selection:bg-indigo-600 selection:text-white">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header
+        class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-6 py-4 flex items-center justify-between sticky top-0 z-50 shadow-xl">
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('dashboard')">
+            <div
+                class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-pink-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30">
+                <i class="fa-solid fa-paint-roller text-lg"></i>
+            </div>
+            <div>
+                <h1
+                    class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-indigo-400 via-violet-300 to-pink-300 bg-clip-text text-transparent">
+                    ChromaWall Visualizer</h1>
+                <p class="text-xs text-slate-400 font-medium">Professional Interior Paint & Cost Studio</p>
+            </div>
+        </div>
+
+        <!-- Wizard Steps Nav -->
+        <div
+            class="hidden md:flex items-center space-x-1 bg-slate-800/80 p-1.5 rounded-2xl border border-slate-700/80 shadow-inner">
+            <button onclick="switchTab('dashboard')" id="nav-btn-dashboard"
+                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-md transition">1.
+                Gallery</button>
+            <button onclick="switchTab('upload')" id="nav-btn-upload"
+                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 transition">2.
+                Room Source</button>
+            <button onclick="switchTab('masking')" id="nav-btn-masking"
+                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 transition">3.
+                Wall Masking</button>
+            <button onclick="switchTab('studio')" id="nav-btn-studio"
+                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 transition">4.
+                Color Studio</button>
+            <button onclick="switchTab('estimator')" id="nav-btn-estimator"
+                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 transition">5.
+                Cost Estimator</button>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <button onclick="openModal('meanModal')"
+                class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-indigo-500/30 flex items-center space-x-2 transition shadow-sm">
+                <i class="fa-solid fa-database text-indigo-400"></i>
+                <span class="hidden sm:inline">MEAN API Sync</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN VIEW CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 flex flex-col overflow-hidden">
+
+        <!-- ================= TAB 1: DASHBOARD / GALLERY ================= -->
+        <div id="tab-content-dashboard" class="space-y-8 flex-1 overflow-y-auto custom-scrollbar pr-1">
+            <div
+                class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 bg-gradient-to-r from-indigo-950/70 via-slate-900 to-violet-950/50 p-8 rounded-3xl border border-indigo-500/30 shadow-2xl relative overflow-hidden">
+                <div
+                    class="absolute -right-10 -bottom-10 w-64 h-64 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none">
+                </div>
+                <div class="max-w-xl">
+                    <span
+                        class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 inline-block mb-3">AI
+                        & Canvas Shader Engine</span>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Visualize Real Room Paint
+                        with Photorealistic Lighting</h2>
+                    <p class="text-slate-300 text-sm mt-3 leading-relaxed">Bridge the gap between imagination and
+                        reality. Mask your room walls, apply Asian Paints/Berger inspired palettes with multiply
+                        shaders, and calculate precise material costs.</p>
+                </div>
+                <button onclick="startNewProject()"
+                    class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/30 transition flex items-center justify-center space-x-3 group">
+                    <i class="fa-solid fa-plus text-base group-hover:rotate-90 transition duration-300"></i>
+                    <span>Create New Room Project</span>
+                </button>
+            </div>
+
+            <!-- Saved Projects -->
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-base font-bold text-slate-200 flex items-center space-x-2">
+                        <i class="fa-solid fa-folder-open text-indigo-400"></i>
+                        <span>Recent Visualizer Projects (Synced with MongoDB)</span>
+                    </h3>
+                    <span id="projectCountBadge" class="text-xs text-slate-400 font-mono">2 projects active</span>
+                </div>
+
+                <div id="savedProjectsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 2: ROOM UPLOAD & SAMPLES ================= -->
+        <div id="tab-content-upload" class="space-y-8 flex-1 overflow-y-auto custom-scrollbar pr-1 hidden">
+            <div class="text-center max-w-lg mx-auto">
+                <h2 class="text-2xl font-bold text-white">Select Room Source</h2>
+                <p class="text-xs text-slate-400 mt-1">Upload your own room photograph or choose from our professionally
+                    lit sample templates with pre-calibrated wall masks.</p>
+            </div>
+
+            <!-- Upload Box -->
+            <div
+                class="bg-slate-900 p-8 rounded-3xl border-2 border-dashed border-slate-700 hover:border-indigo-500 transition duration-300 text-center relative group max-w-3xl mx-auto w-full">
+                <input type="file" id="roomImageUpload" accept="image/*" onchange="handleRoomUpload(event)"
+                    class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10">
+                <div
+                    class="w-16 h-16 rounded-2xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition duration-300 border border-indigo-500/30">
+                    <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
+                </div>
+                <h3 class="font-bold text-base text-slate-200">Upload Room Photograph</h3>
+                <p class="text-xs text-slate-400 mt-1">Drag & drop or click to browse (JPEG, PNG, WEBP)</p>
+            </div>
+
+            <!-- Sample Rooms Grid -->
+            <div class="max-w-4xl mx-auto w-full">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Or Choose a Curated Sample
+                    Room</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div onclick="selectSampleRoom('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80', 'Nordic Living Room')"
+                        class="group cursor-pointer rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 hover:border-indigo-500 transition shadow-md">
+                        <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80"
+                            alt="Living Room"
+                            class="w-full h-36 object-cover group-hover:scale-105 transition duration-300">
+                        <div class="p-3">
+                            <h4 class="font-bold text-xs text-slate-200">Nordic Living Room</h4>
+                            <p class="text-[10px] text-slate-400">Bright natural daylight</p>
+                        </div>
+                    </div>
+                    <div onclick="selectSampleRoom('https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1200&q=80', 'Cozy Bedroom')"
+                        class="group cursor-pointer rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 hover:border-indigo-500 transition shadow-md">
+                        <img src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=600&q=80"
+                            alt="Bedroom"
+                            class="w-full h-36 object-cover group-hover:scale-105 transition duration-300">
+                        <div class="p-3">
+                            <h4 class="font-bold text-xs text-slate-200">Cozy Bedroom</h4>
+                            <p class="text-[10px] text-slate-400">Warm ambient lighting</p>
+                        </div>
+                    </div>
+                    <div onclick="selectSampleRoom('https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&q=80', 'Modern Kitchen')"
+                        class="group cursor-pointer rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 hover:border-indigo-500 transition shadow-md">
+                        <img src="https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=600&q=80"
+                            alt="Kitchen"
+                            class="w-full h-36 object-cover group-hover:scale-105 transition duration-300">
+                        <div class="p-3">
+                            <h4 class="font-bold text-xs text-slate-200">Modern Kitchen</h4>
+                            <p class="text-[10px] text-slate-400">Clean architectural lines</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between max-w-4xl mx-auto w-full pt-4">
+                <button onclick="switchTab('dashboard')"
+                    class="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700 transition">Back</button>
+                <button onclick="switchTab('masking')"
+                    class="px-6 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 hover:bg-indigo-500 transition">Proceed
+                    to Masking</button>
+            </div>
+        </div>
+
+        <!-- ================= TAB 3: WALL MASKING TOOL ================= -->
+        <div id="tab-content-masking" class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 overflow-hidden hidden">
+            <!-- Left Controls -->
+            <div
+                class="lg:col-span-4 bg-slate-900 rounded-2xl border border-slate-800 p-5 flex flex-col space-y-6 shadow-xl overflow-y-auto">
+                <div>
+                    <span
+                        class="text-[10px] font-bold uppercase tracking-wider text-indigo-400 bg-indigo-500/20 px-2 py-0.5 rounded border border-indigo-500/30">Step
+                        3 of 5</span>
+                    <h3 class="text-lg font-bold text-white mt-1">Wall Segmentation Studio</h3>
+                    <p class="text-xs text-slate-400 mt-1">Click on the image canvas to plot polygon points around the
+                        wall surface you want to paint.</p>
+                </div>
+
+                <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+                    <div class="flex items-center justify-between text-xs font-medium">
+                        <span class="text-slate-400">Active Wall Zone:</span>
+                        <strong class="text-indigo-400">Main Accent Wall</strong>
+                    </div>
+                    <div class="flex items-center justify-between text-xs font-medium">
+                        <span class="text-slate-400">Vertices Plotted:</span>
+                        <strong id="vertexCountText" class="text-white">0 points</strong>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <button onclick="undoLastPoint()"
+                        class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>Undo Last Point</span>
+                    </button>
+                    <button onclick="clearMaskPoints()"
+                        class="w-full py-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-xs font-semibold transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-trash"></i>
+                        <span>Clear All Points</span>
+                    </button>
+                </div>
+
+                <div class="pt-auto mt-auto flex justify-between">
+                    <button onclick="switchTab('upload')"
+                        class="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700 transition">Back</button>
+                    <button onclick="switchTab('studio')"
+                        class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 hover:bg-indigo-500 transition">Open
+                        Color Studio</button>
+                </div>
+            </div>
+
+            <!-- Right Canvas Area -->
+            <div
+                class="lg:col-span-8 bg-slate-900 rounded-2xl border border-slate-800 p-5 flex flex-col shadow-xl relative overflow-hidden">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-300"><i
+                            class="fa-solid fa-draw-polygon mr-1.5 text-indigo-400"></i> Interactive Polygon Drawing
+                        Canvas</span>
+                    <span class="text-xs text-slate-400 font-mono">Click to set perimeter vertices</span>
+                </div>
+                <div
+                    class="flex-1 relative bg-slate-950 rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center">
+                    <canvas id="maskCanvas" onclick="onMaskCanvasClick(event)"
+                        class="w-full h-full object-contain cursor-crosshair"></canvas>
+                    <div id="maskInstructionOverlay"
+                        class="absolute inset-0 bg-slate-950/70 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center pointer-events-none">
+                        <i class="fa-solid fa-hand-pointer text-3xl text-indigo-400 mb-2 animate-bounce"></i>
+                        <h4 class="font-bold text-sm text-white">Click room photo to start masking wall</h4>
+                        <p class="text-xs text-slate-400 max-w-xs mt-1">Plot 4 or more points around the corners of the
+                            wall surface.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 4: COLOR & FINISH STUDIO ================= -->
+        <div id="tab-content-studio" class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 overflow-hidden hidden">
+            <!-- Left Studio Sidebar -->
+            <div
+                class="lg:col-span-4 bg-slate-900 rounded-2xl border border-slate-800 p-5 flex flex-col space-y-5 shadow-xl overflow-y-auto">
+                <!-- Active Paint Card -->
+                <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 flex items-center space-x-4">
+                    <div id="studioColorSwatch"
+                        class="w-14 h-14 rounded-xl shadow-md border border-slate-700 flex-shrink-0 transition-colors duration-300"
+                        style="background-color: #3b82f6;"></div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between">
+                            <span id="studioColorCode"
+                                class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">SW-309</span>
+                            <span id="studioColorLRV" class="text-xs font-mono text-slate-400">LRV: 42</span>
+                        </div>
+                        <h3 id="studioColorName" class="font-bold text-sm text-white truncate mt-1">Royal Indigo</h3>
+                        <span id="studioColorPrice" class="text-xs text-indigo-400 font-semibold">$55 / gal</span>
+                    </div>
+                </div>
+
+                <!-- Finishes -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Paint Finish &
+                        Sheen</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="setFinish('Matte')" id="finishBtn-Matte"
+                            class="py-2 px-3 rounded-xl border-2 border-indigo-500 bg-indigo-500/20 text-indigo-300 text-xs font-semibold transition text-center shadow-sm">Matte</button>
+                        <button onclick="setFinish('Satin')" id="finishBtn-Satin"
+                            class="py-2 px-3 rounded-xl border-2 border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 text-xs font-semibold transition text-center">Satin</button>
+                        <button onclick="setFinish('Gloss')" id="finishBtn-Gloss"
+                            class="py-2 px-3 rounded-xl border-2 border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 text-xs font-semibold transition text-center">Gloss</button>
+                    </div>
+                </div>
+
+                <!-- Curated Palettes -->
+                <div class="flex-1 flex flex-col space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-bold uppercase tracking-wider text-slate-400">Curated
+                            Palettes</label>
+                        <div class="flex space-x-1">
+                            <button onclick="filterPalette('all')" id="paletteFilter-all"
+                                class="px-2 py-1 text-[10px] font-semibold rounded bg-indigo-600 text-white">All</button>
+                            <button onclick="filterPalette('neutral')" id="paletteFilter-neutral"
+                                class="px-2 py-1 text-[10px] font-semibold rounded bg-slate-800 text-slate-400">Neutrals</button>
+                            <button onclick="filterPalette('designer')" id="paletteFilter-designer"
+                                class="px-2 py-1 text-[10px] font-semibold rounded bg-slate-800 text-slate-400">Designer</button>
+                        </div>
+                    </div>
+
+                    <div id="paletteColorGrid" class="grid grid-cols-4 gap-2 overflow-y-auto max-h-44 pr-1">
+                        <!-- Populated dynamically -->
+                    </div>
+
+                    <!-- Custom Color Picker -->
+                    <div class="pt-3 border-t border-slate-800 flex items-center space-x-3">
+                        <input type="color" id="customColorPicker" value="#3b82f6"
+                            oninput="onCustomColorChange(this.value)"
+                            class="w-10 h-10 rounded-xl bg-transparent border border-slate-700 cursor-pointer p-0">
+                        <div class="flex-1">
+                            <span class="text-[9px] text-slate-400 block font-bold uppercase">Custom Tint Mix</span>
+                            <span id="customHexText" class="text-xs font-mono text-indigo-300">#3B82F6</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-2">
+                    <button onclick="switchTab('masking')"
+                        class="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700 transition">Back</button>
+                    <button onclick="switchTab('estimator')"
+                        class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 hover:bg-indigo-500 transition">Cost
+                        & Estimator</button>
+                </div>
+            </div>
+
+            <!-- Right Studio Preview Canvas -->
+            <div
+                class="lg:col-span-8 bg-slate-900 rounded-2xl border border-slate-800 p-5 flex flex-col shadow-xl relative overflow-hidden">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Photorealistic Shader
+                            Simulation (multiply/overlay)</span>
+                    </div>
+                    <button onclick="toggleCompareMode()" id="compareModeBtn"
+                        class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-indigo-300 text-xs font-semibold transition border border-indigo-500/30">
+                        Before/After Compare
+                    </button>
+                </div>
+
+                <div
+                    class="flex-1 relative bg-slate-950 rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center">
+                    <canvas id="studioCanvas" class="w-full h-full object-contain"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 5: COST & COVERAGE ESTIMATOR ================= -->
+        <div id="tab-content-estimator" class="space-y-6 flex-1 overflow-y-auto custom-scrollbar pr-1 hidden">
+            <div class="text-center max-w-lg mx-auto">
+                <h2 class="text-2xl font-bold text-white">Paint Cost & Coverage Estimator</h2>
+                <p class="text-xs text-slate-400 mt-1">Calculate precise gallon requirements, primer coats, and material
+                    pricing based on room dimensions.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto w-full">
+                <!-- Dimensions Form -->
+                <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4 shadow-xl">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-400 mb-2"><i
+                            class="fa-solid fa-ruler-combined mr-2"></i> Room Dimensions</h3>
+
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-300 mb-1">Length (ft)</label>
+                            <input type="number" id="dimLength" value="16" oninput="updateEstimator()"
+                                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-300 mb-1">Width (ft)</label>
+                            <input type="number" id="dimWidth" value="14" oninput="updateEstimator()"
+                                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-300 mb-1">Height (ft)</label>
+                            <input type="number" id="dimHeight" value="9" oninput="updateEstimator()"
+                                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 pt-2">
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-300 mb-1">Doors Count</label>
+                            <input type="number" id="dimDoors" value="1" oninput="updateEstimator()"
+                                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-300 mb-1">Windows Count</label>
+                            <input type="number" id="dimWindows" value="2" oninput="updateEstimator()"
+                                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-800">
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" id="includePrimerCheckbox" onchange="updateEstimator()" checked
+                                class="w-4 h-4 rounded text-indigo-600 bg-slate-950 border-slate-800 focus:ring-0">
+                            <span class="text-xs font-medium text-slate-300">Include Primer Coat (+ $15 base)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Cost Breakdown Card -->
+                <div
+                    class="bg-gradient-to-br from-indigo-950/70 to-slate-900 p-6 rounded-2xl border border-indigo-500/30 flex flex-col justify-between space-y-6 shadow-xl">
+                    <div>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-300 mb-4"><i
+                                class="fa-solid fa-receipt mr-2"></i> Project Cost Breakdown</h3>
+
+                        <div class="space-y-3 text-xs">
+                            <div class="flex justify-between pb-2 border-b border-indigo-900/60">
+                                <span class="text-slate-400">Total Wall Surface Area:</span>
+                                <strong id="estWallArea" class="text-white">504 sq. ft.</strong>
+                            </div>
+                            <div class="flex justify-between pb-2 border-b border-indigo-900/60">
+                                <span class="text-slate-400">Required Gallons (2 Coats):</span>
+                                <strong id="estGallons" class="text-indigo-400">3 Gallons</strong>
+                            </div>
+                            <div class="flex justify-between pb-2 border-b border-indigo-900/60">
+                                <span class="text-slate-400">Selected Paint Price:</span>
+                                <strong id="estPaintUnit" class="text-white">$55 / gal</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="bg-indigo-950/80 p-4 rounded-xl border border-indigo-500/40 flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-300 block">Total
+                                Estimated Price</span>
+                            <span class="text-[10px] text-slate-400">Includes materials & taxes</span>
+                        </div>
+                        <span id="estTotalPrice" class="text-2xl font-extrabold text-emerald-400">$180</span>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="flex flex-col sm:flex-row items-center justify-between max-w-4xl mx-auto w-full pt-4 gap-4 border-t border-slate-800">
+                <button onclick="switchTab('studio')"
+                    class="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700 transition">Back
+                    to Studio</button>
+                <div class="flex space-x-3 w-full sm:w-auto">
+                    <button onclick="saveProjectToDatabase()"
+                        class="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <span>Save to MongoDB Database</span>
+                    </button>
+                    <button onclick="exportRenderedImage()"
+                        class="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/30 transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-download"></i>
+                        <span>Export Render PNG</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MEAN MONGODB MODAL -->
+    <div id="meanModal"
+        class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 rounded-3xl max-w-2xl w-full p-6 md:p-8 border border-slate-800 shadow-2xl space-y-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center border border-indigo-500/30">
+                        <i class="fa-solid fa-database"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base text-white">MEAN Stack REST API Synchronizer</h3>
+                        <p class="text-xs text-slate-400">Node.js / Express & Mongoose ODM Architecture</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('meanModal')"
+                    class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div
+                class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-[11px] text-slate-300 space-y-2 overflow-x-auto">
+                <div class="text-indigo-400 font-bold">// Mongoose RoomProject Schema (MongoDB Atlas)</div>
+                <pre class="text-slate-400">
+const RoomProjectSchema = new Schema({
+  projectName: { type: String, required: true },
+  roomImageUrl: String,
+  wallMasks: [{
+    wallId: String,
+    points: [{ x: Number, y: Number }],
+    appliedColor: { name: String, hex: String, code: String },
+    finish: String
+  }],
+  createdAt: { type: Date, default: Date.now }
+});</pre>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button onclick="closeModal('meanModal')"
+                    class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition">Close
+                    Database Inspector</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT APPLICATION CORE -->
+    <script>
+        // Curated Paint Catalog (Asian Paints & Berger inspired)
+        const paintCatalog = [
+            { id: 1, name: "Sherwood Forest", code: "AP-421", hex: "#3b5343", category: "neutral", lrv: 24, pricePerGallon: 48 },
+            { id: 2, name: "Sunset Terracotta", code: "AP-712", hex: "#e07a5f", category: "designer", lrv: 45, pricePerGallon: 52 },
+            { id: 3, name: "Alabaster Pure", code: "AP-102", hex: "#f4f1de", category: "neutral", lrv: 88, pricePerGallon: 42 },
+            { id: 4, name: "Royal Indigo", code: "BG-309", hex: "#3b82f6", category: "vibrant", lrv: 42, pricePerGallon: 55 },
+            { id: 5, name: "Lavender Whisper", code: "BG-620", hex: "#c8b6ff", category: "vibrant", lrv: 68, pricePerGallon: 50 },
+            { id: 6, name: "Cashmere Slate", code: "AP-811", hex: "#94a3b8", category: "neutral", lrv: 52, pricePerGallon: 46 },
+            { id: 7, name: "Sahara Sand", code: "AP-904", hex: "#d4a373", category: "neutral", lrv: 62, pricePerGallon: 49 },
+            { id: 8, name: "Emerald Luxe", code: "BG-321", hex: "#1b4332", category: "designer", lrv: 18, pricePerGallon: 60 }
+        ];
+
+        // Application State
+        let appState = {
+            currentTab: 'dashboard',
+            activeImageUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+            polygonPoints: [
+                { x: 80, y: 50 }, { x: 520, y: 50 }, { x: 520, y: 380 }, { x: 80, y: 380 }
+            ],
+            currentColor: paintCatalog[3],
+            currentFinish: 'Matte',
+            paletteFilter: 'all',
+            isComparing: false,
+            savedProjects: [
+                {
+                    id: 'proj-101',
+                    projectName: 'Modern Nordic Living Room',
+                    roomImageUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
+                    wallMasks: [{ points: [{ x: 80, y: 50 }, { x: 520, y: 50 }, { x: 520, y: 380 }, { x: 80, y: 380 }], color: paintCatalog[3], finish: 'Matte' }],
+                    createdAt: '2026-06-12'
+                },
+                {
+                    id: 'proj-102',
+                    projectName: 'Cozy Master Bedroom',
+                    roomImageUrl: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=800&q=80',
+                    wallMasks: [{ points: [{ x: 90, y: 60 }, { x: 490, y: 60 }, { x: 490, y: 340 }, { x: 90, y: 340 }], color: paintCatalog[1], finish: 'Satin' }],
+                    createdAt: '2026-06-14'
+                }
+            ]
+        };
+
+        const roomImageObj = new Image();
+
+        window.addEventListener('DOMContentLoaded', () => {
+            roomImageObj.crossOrigin = 'anonymous';
+            roomImageObj.onload = () => {
+                redrawMaskCanvas();
+                redrawStudioCanvas();
+            };
+            roomImageObj.src = appState.activeImageUrl;
+            renderSavedProjects();
+            renderPaletteGrid();
+            updateEstimator();
+        });
+
+        // Tab Navigation
+        function switchTab(tabId) {
+            appState.currentTab = tabId;
+            ['dashboard', 'upload', 'masking', 'studio', 'estimator'].forEach(id => {
+                document.getElementById(`tab-content-${id}`).classList.add('hidden');
+                const navBtn = document.getElementById(`nav-btn-${id}`);
+                if (navBtn) {
+                    navBtn.className = "px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 transition";
+                }
+            });
+            document.getElementById(`tab-content-${tabId}`).classList.remove('hidden');
+            const activeNav = document.getElementById(`nav-btn-${tabId}`);
+            if (activeNav) {
+                activeNav.className = "px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-md transition";
+            }
+
+            setTimeout(() => {
+                if (tabId === 'masking') redrawMaskCanvas();
+                if (tabId === 'studio') redrawStudioCanvas();
+            }, 50);
+        }
+
+        function startNewProject() {
+            appState.polygonPoints = [{ x: 80, y: 50 }, { x: 520, y: 50 }, { x: 520, y: 380 }, { x: 80, y: 380 }];
+            switchTab('upload');
+        }
+
+        function selectSampleRoom(url, name) {
+            appState.activeImageUrl = url;
+            roomImageObj.src = url;
+            appState.polygonPoints = [{ x: 80, y: 50 }, { x: 520, y: 50 }, { x: 520, y: 380 }, { x: 80, y: 380 }];
+            switchTab('masking');
+        }
+
+        function handleRoomUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    appState.activeImageUrl = e.target.result;
+                    roomImageObj.src = e.target.result;
+                    appState.polygonPoints = [];
+                    switchTab('masking');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Render Saved Projects
+        function renderSavedProjects() {
+            const grid = document.getElementById('savedProjectsGrid');
+            grid.innerHTML = '';
+            appState.savedProjects.forEach(proj => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-lg hover:border-indigo-500/50 transition duration-300 flex flex-col group";
+                card.innerHTML = `
+                    <div class="relative h-48 overflow-hidden bg-slate-950">
+                        <img src="${proj.roomImageUrl}" alt="Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
+                        <span class="absolute bottom-3 left-3 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-slate-900/90 text-indigo-300 border border-indigo-500/30 backdrop-blur-sm">
+                            ${proj.wallMasks.length} Wall Mask
+                        </span>
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                        <div>
+                            <h4 class="font-bold text-base text-white truncate">${proj.projectName}</h4>
+                            <p class="text-xs text-slate-400 mt-1">Created: ${proj.createdAt}</p>
+                        </div>
+                        <button onclick="loadProject('${proj.id}')" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-indigo-600 text-slate-200 hover:text-white text-xs font-semibold transition flex items-center justify-center space-x-2 shadow-sm">
+                            <i class="fa-solid fa-arrow-right"></i>
+                            <span>Open in Studio</span>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            document.getElementById('projectCountBadge').innerText = `${appState.savedProjects.length} projects active`;
+        }
+
+        function loadProject(id) {
+            const proj = appState.savedProjects.find(p => p.id === id);
+            if (proj) {
+                appState.activeImageUrl = proj.roomImageUrl;
+                roomImageObj.src = proj.roomImageUrl;
+                if (proj.wallMasks.length > 0) {
+                    appState.polygonPoints = proj.wallMasks[0].points;
+                    appState.currentColor = proj.wallMasks[0].color;
+                    appState.currentFinish = proj.wallMasks[0].finish;
+                }
+                switchTab('studio');
+            }
+        }
+
+        // Masking Canvas Logic
+        function onMaskCanvasClick(event) {
+            const canvas = document.getElementById('maskCanvas');
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const x = (event.clientX - rect.left) * scaleX;
+            const y = (event.clientY - rect.top) * scaleY;
+
+            appState.polygonPoints.push({ x, y });
+            redrawMaskCanvas();
+        }
+
+        function undoLastPoint() {
+            appState.polygonPoints.pop();
+            redrawMaskCanvas();
+        }
+
+        function clearMaskPoints() {
+            appState.polygonPoints = [];
+            redrawMaskCanvas();
+        }
+
+        function redrawMaskCanvas() {
+            const canvas = document.getElementById('maskCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.parentElement.clientWidth || 800;
+            canvas.height = 450;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (roomImageObj.complete) {
+                ctx.drawImage(roomImageObj, 0, 0, canvas.width, canvas.height);
+            }
+
+            const pts = appState.polygonPoints;
+            document.getElementById('vertexCountText').innerText = `${pts.length} points`;
+            document.getElementById('maskInstructionOverlay').style.display = pts.length > 0 ? 'none' : 'flex';
+
+            if (pts.length > 0) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(pts[0].x, pts[0].y);
+                for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(99, 102, 241, 0.45)';
+                ctx.fill();
+                ctx.strokeStyle = '#6366f1';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.restore();
+
+                pts.forEach(p => {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#6366f1';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                });
+            }
+        }
+
+        // Color Studio Logic
+        function renderPaletteGrid() {
+            const grid = document.getElementById('paletteColorGrid');
+            grid.innerHTML = '';
+            const filtered = appState.paletteFilter === 'all'
+                ? paintCatalog
+                : paintCatalog.filter(p => p.category === appState.paletteFilter);
+
+            filtered.forEach(paint => {
+                const isSelected = appState.currentColor.id === paint.id;
+                const btn = document.createElement('button');
+                btn.onclick = () => selectStudioColor(paint);
+                btn.className = isSelected
+                    ? 'p-1.5 rounded-xl border-2 border-indigo-500 bg-slate-950 shadow-md flex flex-col items-center'
+                    : 'p-1.5 rounded-xl border-2 border-slate-800 bg-slate-950/40 hover:border-slate-700 flex flex-col items-center transition';
+                btn.innerHTML = `
+                    <div class="w-full h-7 rounded-lg shadow-inner mb-1" style="background-color: ${paint.hex};"></div>
+                    <span class="text-[9px] font-medium text-slate-300 truncate w-full text-center">${paint.name}</span>
+                `;
+                grid.appendChild(btn);
+            });
+        }
+
+        function filterPalette(filter) {
+            appState.paletteFilter = filter;
+            ['all', 'neutral', 'designer'].forEach(f => {
+                const b = document.getElementById(`paletteFilter-${f}`);
+                if (b) {
+                    b.className = f === filter ? 'px-2 py-1 text-[10px] font-semibold rounded bg-indigo-600 text-white' : 'px-2 py-1 text-[10px] font-semibold rounded bg-slate-800 text-slate-400';
+                }
+            });
+            renderPaletteGrid();
+        }
+
+        function selectStudioColor(paint) {
+            appState.currentColor = paint;
+            updateStudioColorUI();
+            renderPaletteGrid();
+            redrawStudioCanvas();
+        }
+
+        function onCustomColorChange(hex) {
+            appState.currentColor = { id: 999, name: "Custom Tint", code: "CUSTOM", hex: hex, category: 'neutral', lrv: 50, pricePerGallon: 50 };
+            document.getElementById('customHexText').innerText = hex.toUpperCase();
+            updateStudioColorUI();
+            redrawStudioCanvas();
+        }
+
+        function setFinish(finish) {
+            appState.currentFinish = finish;
+            ['Matte', 'Satin', 'Gloss'].forEach(f => {
+                const btn = document.getElementById(`finishBtn-${f}`);
+                if (btn) {
+                    btn.className = f === finish
+                        ? 'py-2 px-3 rounded-xl border-2 border-indigo-500 bg-indigo-500/20 text-indigo-300 text-xs font-semibold transition text-center shadow-sm'
+                        : 'py-2 px-3 rounded-xl border-2 border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 text-xs font-semibold transition text-center';
+                }
+            });
+            redrawStudioCanvas();
+        }
+
+        function updateStudioColorUI() {
+            const c = appState.currentColor;
+            document.getElementById('studioColorSwatch').style.backgroundColor = c.hex;
+            document.getElementById('studioColorCode').innerText = c.code;
+            document.getElementById('studioColorLRV').innerText = `LRV: ${c.lrv}`;
+            document.getElementById('studioColorName').innerText = c.name;
+            document.getElementById('studioColorPrice').innerText = `$${c.pricePerGallon} / gal`;
+        }
+
+        function redrawStudioCanvas() {
+            const canvas = document.getElementById('studioCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.parentElement.clientWidth || 800;
+            canvas.height = 450;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (roomImageObj.complete && !appState.isComparing) {
+                ctx.drawImage(roomImageObj, 0, 0, canvas.width, canvas.height);
+            } else if (roomImageObj.complete && appState.isComparing) {
+                ctx.drawImage(roomImageObj, 0, 0, canvas.width, canvas.height);
+            }
+
+            const pts = appState.polygonPoints;
+            if (pts.length > 0 && !appState.isComparing) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(pts[0].x, pts[0].y);
+                for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+                ctx.closePath();
+
+                // Realistic multiply shader
+                ctx.globalCompositeOperation = 'multiply';
+                ctx.fillStyle = appState.currentColor.hex;
+                ctx.fill();
+
+                // Finish sheen overlay
+                if (appState.currentFinish === 'Gloss') {
+                    ctx.globalCompositeOperation = 'overlay';
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';
+                    ctx.fill();
+                } else if (appState.currentFinish === 'Satin') {
+                    ctx.globalCompositeOperation = 'overlay';
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.14)';
+                    ctx.fill();
+                }
+                ctx.restore();
+            }
+        }
+
+        function toggleCompareMode() {
+            appState.isComparing = !appState.isComparing;
+            const btn = document.getElementById('compareModeBtn');
+            btn.className = appState.isComparing
+                ? 'px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold transition border border-indigo-500'
+                : 'px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-indigo-300 text-xs font-semibold transition border border-indigo-500/30';
+            btn.innerText = appState.isComparing ? 'Showing Original Photo' : 'Before/After Compare';
+            redrawStudioCanvas();
+        }
+
+        // Estimator Logic
+        function updateEstimator() {
+            const l = parseFloat(document.getElementById('dimLength').value) || 16;
+            const w = parseFloat(document.getElementById('dimWidth').value) || 14;
+            const h = parseFloat(document.getElementById('dimHeight').value) || 9;
+            const doors = parseInt(document.getElementById('dimDoors').value) || 1;
+            const windows = parseInt(document.getElementById('dimWindows').value) || 2;
+            const includePrimer = document.getElementById('includePrimerCheckbox').checked;
+
+            const perimeter = 2 * (l + w);
+            const grossArea = perimeter * h;
+            const deductions = (doors * 21) + (windows * 15);
+            const netArea = Math.max(0, grossArea - deductions);
+            const gallons = Math.ceil((netArea * 2) / 350);
+
+            let totalCost = gallons * appState.currentColor.pricePerGallon;
+            if (includePrimer) totalCost += 15;
+
+            document.getElementById('estWallArea').innerText = `${netArea} sq. ft.`;
+            document.getElementById('estGallons').innerText = `${gallons} Gallons`;
+            document.getElementById('estPaintUnit').innerText = `$${appState.currentColor.pricePerGallon} / gal`;
+            document.getElementById('estTotalPrice').innerText = `$${totalCost}`;
+        }
+
+        // Database & Export
+        function saveProjectToDatabase() {
+            const newProj = {
+                id: `proj-${Date.now()}`,
+                projectName: `Custom Room (${appState.currentColor.name})`,
+                roomImageUrl: appState.activeImageUrl,
+                wallMasks: [{ points: appState.polygonPoints, color: appState.currentColor, finish: appState.currentFinish }],
+                createdAt: new Date().toISOString().split('T')[0]
+            };
+            appState.savedProjects.unshift(newProj);
+            renderSavedProjects();
+            openModal('meanModal');
+        }
+
+        function exportRenderedImage() {
+            const canvas = document.getElementById('studioCanvas');
+            if (!canvas) return;
+            const link = document.createElement('a');
+            link.download = 'smart-wall-paint-visualizer.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+    </script>
+
+</body>
+
+</html>
